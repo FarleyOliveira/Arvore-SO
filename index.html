@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistemas Operacionais</title>
+    <style>
+        /* Estilos do Menu Fixo no Topo */
+        .top-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #1f0663;
+            color: #fff; /* Cor do texto */
+            padding: 10px 20px;
+            z-index: 1000; /* Para garantir que o menu esteja acima de outros elementos */
+            border-bottom: 2px solid #fff; /* Adiciona uma borda na parte inferior */
+        }
+
+        .top-menu ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .top-menu ul li {
+            display: inline;
+            margin-right: 20px;
+        }
+
+        .top-menu ul li a {
+            color: #fff; /* Cor do texto do link */
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .top-menu ul li a:hover {
+            text-decoration: underline;
+        }
+
+        /* Adiciona um fundo à página */
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url('fundo.jpeg'); /* Define a imagem de fundo */
+            background-size: cover; /* Para cobrir todo o espaço disponível */
+            background-position: center; /* Centraliza a imagem */
+            background-attachment: fixed; /* Fixa a imagem de fundo para que ela não role com a página */
+            font-family: Arial, sans-serif;
+            color: #333;
+        }
+        .container {
+            padding: 2rem;
+            text-align: center; /* Centraliza o texto */
+            border: 1px solid #ccc; /* Adiciona borda */
+            margin-top: 180px; /* Aumenta a margem superior */
+            background-color: rgba(255, 255, 255, 0.8); /* Cor de fundo com transparência */
+        }
+
+        h2 {
+            color: #444;
+            margin-bottom: 20px; /* Adiciona um espaço inferior para separar do conteúdo */
+        }
+
+        /* Estilos para o texto */
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto; /* Centraliza o texto */
+        }
+
+        /* Estilos para a imagem */
+        .image-container {
+            margin-top: 20px; /* Adiciona margem superior para separar do texto */
+        }
+
+        .image-container img {
+            max-width: 300px; /* Define a largura máxima da imagem */
+            width: 100%; /* Garante que a imagem se ajuste ao contêiner */
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Fixo no Topo -->
+    <div class="top-menu">
+        <ul>
+            <li><a href="index.html" target="_self">Inicio</a></li>
+            <li><a href="Unix.html" target="_self">Arvore Unix</a></li>
+            <li><a href="DOS.html" target="_self">Arvore DOS</a></li>
+            <li><a href="MacOS.html" target="_self">Arvore MacOS</a></li>
+        </ul>
+    </div>
+
+    <!-- Conteúdo da Árvore Genealógica -->
+    <div class="container">
+        <h2>Sistemas Operacionais</h2>
+        <p>Um sistema operacional (SO) é um software que atua como intermediário entre o hardware do computador e o usuário. Ele fornece uma interface para o usuário interagir com o hardware e executa tarefas básicas, como gerenciamento de recursos, execução de aplicativos e fornecimento de serviços. Os sistemas operacionais são essenciais para o funcionamento de computadores e outros dispositivos eletrônicos.</p>
+        
+        <!-- Div para conter a imagem -->
+        <div class="image-container">
+            <img src="sistemas-operacionais.jpg" alt="Mundo gamer">
+        </div>
+    </div>
+</body>
+</html>
+
