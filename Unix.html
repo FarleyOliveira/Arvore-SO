@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Árvore Genealógica do Unix</title>
+    <style>
+        /* Estilos do Menu Fixo no Topo */
+        .top-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #1f0663;
+            color: #fff; /* Cor do texto */
+            padding: 10px 20px;
+            z-index: 1000; /* Para garantir que o menu esteja acima de outros elementos */
+            border-bottom: 2px solid #fff; /* Adiciona uma borda na parte inferior */
+        }
+
+        .top-menu ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .top-menu ul li {
+            display: inline;
+            margin-right: 20px;
+        }
+
+        .top-menu ul li a {
+            color: #fff; /* Cor do texto do link */
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .top-menu ul li a:hover {
+            text-decoration: underline;
+        }
+
+        /* Adiciona um fundo à página */
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url(fundo.jpeg);
+            background-color: #f2f2f2; /* Define uma cor de fundo para a página */
+            background-size: cover; /* Para cobrir todo o espaço disponível */
+            background-position: center; /* Centraliza a imagem */
+            background-attachment: fixed; /* Fixa a imagem de fundo para que ela não role com a página */
+            font-family: Arial, sans-serif;
+            color: #333;
+        }
+
+        /* Estilos da Árvore Genealógica */
+        .container {
+            padding: 2rem;
+            float: left; /* Align container to the left */
+        }
+
+        h2 {
+            color: #f7f2f2;
+        }
+
+        .tree ul {
+            position: relative;
+            transition: all 0.5s;
+            -webkit-transition: all 0.5s;
+            -moz-transition: all 0.5s;
+        }
+
+        .tree li {
+            text-align: center;
+            list-style-type: none;
+            position: relative;
+            padding: 20px 5px 0 5px;
+            transition: all 0.5s;
+            -webkit-transition: all 0.5s;
+            -moz-transition: all 0.5s;
+            border: 1px solid #ddd; /* Light border */
+            border-radius: 5px; /* Add border radius */
+            background-color: #f9f9f9; /* Light background color */
+        }
+
+        .tree li::before,
+        .tree li::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 50%;
+            border-top: 1px solid #ccc;
+            width: 50%;
+            height: 20px;
+        }
+
+        .tree li::after {
+            right: auto;
+            left: 50%;
+            border-left: 1px solid #ccc;
+        }
+
+        .tree li:only-child::after,
+        .tree li:only-child::before {
+            display: none;
+        }
+
+        .tree li:only-child {
+            padding-top: 0;
+        }
+
+        .tree li:first-child::before,
+        .tree li:last-child::after {
+            border: 0 none;
+        }
+
+        .tree li:last-child::before {
+            border-right: 1px solid #ccc;
+            border-radius: 0 5px 0 0;
+            -webkit-border-radius: 0 5px 0 0;
+            -moz-border-radius: 0 5px 0 0;
+        }
+
+        .tree li:first-child::after {
+            border-radius: 5px 0 0 0;
+            -webkit-border-radius: 5px 0 0 0;
+            -moz-border-radius: 5px 0 0 0;
+        }
+
+        .tree ul ul::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            border-left: 1px solid #ccc;
+            width: 0;
+            height: 20px;
+        }
+
+        .tree li a {
+            border: 1px solid #ccc;
+            padding: 5px 10px;
+            text-decoration: none;
+            color: #666;
+            font-family: Arial, sans-serif;
+            font-size: 12px; /* Decrease font size */
+            display: inline-block;
+            border-radius: 5px;
+            -webkit-border-radius: 5px;
+            -moz-border-radius: 5px;
+            transition: all 0.3s;
+            -webkit-transition: all 0.3s;
+            -moz-transition: all 0.3s;
+            background-color: #f9f9f9; /* Light background color */
+        }
+
+        .tree li a:hover,
+        .tree li a:hover+ul li a {
+            background: #e9e9e9; /* Lighter background color on hover */
+            color: #000; /* Black text color on hover */
+            border: 1px solid #bbb; /* Lighter border color on hover */
+        }
+
+        .tree li a:hover+ul li::after,
+        .tree li a:hover+ul li::before,
+        .tree li a:hover+ul::before,
+        .tree li a:hover+ul ul::before {
+            border-color: #bbb; /* Lighter border color on hover */
+        }
+
+        /* Estilos para o modal */
+        .modal {
+            display: none; /* Por padrão, oculte o modal */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4); /* Cor de fundo escura com transparência */
+        }
+
+        /* Estilos para o conteúdo do modal */
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; /* Centraliza verticalmente */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Define a largura do modal */
+            border-radius: 5px;
+        }
+
+        /* Estilos para o botão de fechar */
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Fixo no Topo -->
+   
+<div class="top-menu">
+        <ul>
+            <li><a href="Index.html" target="_self">Inicio</a></li>
+            <li><a href="Unix.html" target="_self">Arvore Unix</a></li>
+            <li><a href="DOS.html" target="_self">Arvore DOS</a></li>
+            <li><a href="MacOS.html" target="_self">Arvore MacOS</a></li>
+        </ul>
+    </div>
+
+    <!-- Conteúdo da Árvore Genealógica -->
+    <div class="container">
+        <h2>Árvore Unix (1969)</h2>
+        <div class="tree">
+            <ul>
+                <li>
+                    <a href="#" onclick="openModal('modal-unix')">Unix (1969)</a>
+                    <ul>
+                        <li>
+                            <a href="#" onclick="openModal('modal-bsd-unix')">BSD Unix (1977)</a>
+                            <ul>
+                                <li><a href="#" onclick="openModal('modal-freebsd')">FreeBSD (1993)</a></li>
+                                <li><a href="#" onclick="openModal('modal-netbsd')">NetBSD (1993)</a></li>
+                                <li><a href="#" onclick="openModal('modal-openbsd')">OpenBSD (1995)</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#" onclick="openModal('modal-unix-system-v')">Unix System V (1983)</a>
+                            <ul>
+                                <li><a href="#" onclick="openModal('modal-aix')">AIX (1986)</a></li>
+                                <li><a href="#" onclick="openModal('modal-hp-ux')">HP-UX (1984)</a></li>
+                                <li><a href="#" onclick="openModal('modal-solaris')">Solaris (1992)</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#" onclick="openModal('modal-linux')">Linux (1991)</a>
+                            <ul>
+                                <li>
+                                    <a href="#" onclick="openModal('modal-debian')">Debian (1993)</a>
+                                    <ul>
+                                        <li><a href="#" onclick="openModal('modal-ubuntu')">Ubuntu (2004)</a>
+                                            <ul>
+                                                <li><a href="#" onclick="openModal('modal-mint')">Mint (2006)</a></li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a href="#" onclick="openModal('modal-red-hat-linux')">Red Hat Linux (1994)</a>
+                                    <ul>
+                                        <li><a href="#" onclick="openModal('modal-fedora')">Fedora (2003)</a></li>
+                                        <li><a href="#" onclick="openModal('modal-centos')">CentOS (2004)</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="#" onclick="openModal('modal-slackware')">Slackware (1993)</a></li>
+                                <li>
+                                    <a href="#" onclick="openModal('modal-gentoo')">Gentoo (2002)</a>
+                                    <ul>
+                                        <li>
+                                            <a href="#" onclick="openModal('modal-arch')">Arch (2002)</a>
+                                            <ul>
+                                                <li><a href="#" onclick="openModal('modal-manjaro')">Manjaro (2011)</a></li>
+                                                <li><a href="#" onclick="openModal('modal-chrome-os')">Chrome OS (2009)</a></li>
+                                                <li><a href="#" onclick="openModal('modal-pop-os')">Pop!_OS (2017)</a></li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Modais -->
+    <!-- Modal para Unix -->
+    <div id="modal-unix" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-unix')">&times;</span>
+            <p>O Unix é um sistema operacional portável (pode ser executado independentemente da arquitetura), multitarefas (executa várias tarefas ao mesmo tempo) e multiusuário (permite mais de um usuário ao mesmo tempo). A maioria dos servidores ou provedores cloud utilizam esse sistema (ou o Linux).</p>
+        </div>
+    </div>
+
+    <!-- Modal para BSD Unix -->
+    <div id="modal-bsd-unix" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-bsd-unix')">&times;</span>
+            <p>BSD, ou Berkeley Software Distribution, é uma linha de sistemas operacionais derivados do Unix, inicialmente desenvolvida na Universidade da Califórnia, em Berkeley.</p>
+        </div>
+    </div>
+
+    <!-- Modal para FreeBSD -->
+    <div id="modal-freebsd" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-freebsd')">&times;</span>
+            <p>O FreeBSD permite ao usuário escolher a partir de uma variedade de ambientes de desktop, tais como o Gnome, KDE ou Xfce; e gerenciadores gráficos (gerenciadores de janelas) mais leves, como Openbox, Fluxbox ou Awesome. Diversos outros programas e utilitários.</p>
+        </div>
+    </div>
+
+    <!-- Modal para NetBSD -->
+    <div id="modal-netbsd" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-netbsd')">&times;</span>
+            <p>Começou tudo com o NetBSD, um dos fundadores não muito contente com o rumo tomado pelos demais desenvolvedores do S.O. resolveu sair do projeto e fundou o OpenBSD e nisso o NetBSD continuou nesse rumo e hoje é o que é, roda até em torradeira.</p>
+        </div>
+    </div>
+
+    <!-- Modal para OpenBSD -->
+    <div id="modal-openbsd" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-openbsd')">&times;</span>
+            <p>O OpenBSD é um sistema operacional livre da família UNIX, multiplataforma.</p>
+        </div>
+    </div>
+
+    <!-- Modal para Unix System V -->
+    <div id="modal-unix-system-v" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-unix-system-v')">&times;</span>
+            <p>Unix System V ou System V foi lançado em 1983 pela AT&T, foi uma das primeiras versões comercializadas. Existem várias versões do sistema mas dentre todas o SVR4 foi a que teve mais sucesso. Apenas 3 sistemas estão ativos a familia System V, O AIX da IBM, HP-UX da HP, e o famoso Solaris da Oracle.</p>
+        </div>
+    </div>
+
+    <!-- Modal para AIX -->
+    <div id="modal-aix" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-aix')">&times;</span>
+            <p>O IBM AIX é o sistema operacional Unix proprietário da IBM projetado para ser executado em servidores IBM Power.</p>
+        </div>
+    </div>
+
+    <!-- Modal para HP-UX -->
+    <div id="modal-hp-ux" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-hp-ux')">&times;</span>
+            <p>O HP-UX (de "Hewlett Packard Unix") é a implementação proprietária do sistema operacional Unix da Hewlett Packard Enterprise, baseado no Unix System V (inicialmente System III) e lançado pela primeira vez em 1984.</p>
+        </div>
+    </div>
+
+    <!-- Modal para Solaris -->
+    <div id="modal-solaris" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-solaris')">&times;</span>
+            <p>O SOLARIS é um sistema operacional voltado para grandes empresas, com um conjunto de softwares para desenvolvimento e gerenciamento de informações e comunicação entre aplicativos.</p>
+        </div>
+    </div>
+
+    <!-- Modal para Linux -->
+    <div id="modal-linux" class="modal">
+        <div class="modal-content">
+            <span class="close"="close" onclick="closeModal('modal-linux')">&times;</span>
+            <p>Linux é um sistema operacional open source. Ele foi criado em 1991 e começou como um hobby de Linus Torvalds. Quando estava na universidade, Linus queria criar uma versão alternativa, gratuita e open source do sistema operacional MINIX, que era baseado nos princípios e no design do Unix.</p>
+        </div>
+    </div>
+
+    <!-- Modal para Debian -->
+    <div id="modal-debian" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-debian')">&times;</span>
+            <p>Debian, também conhecido como Debian GNU/Linux, é uma distribuição Linux feita de software livre e de código aberto e software proprietário desenvolvida e mantida oficialmente pelo Projeto Debian, estabelecido por Ian Murdock em 16 de agosto de 1993.</p>
+        </div>
+    </div>
+
+    <!-- Modal para Ubuntu -->
+    <div id="modal-ubuntu" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-ubuntu')">&times;</span>
+            <p>O Ubuntu é um popular sistema operacional baseado em Linux, que é gratuito e de código aberto, podendo ser usado num computador ou servidor.</p>
+        </div>
+    </div>
+
+    <!-- Modal para Mint -->
+    <div id="modal-mint" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-mint')">&times;</span>
+            <p>O Linux Mint é um sistema operacional para computadores, projetado para funcionar na maioria dos sistemas computacionais modernos, incluindo PCs nas arquiteturas x86 e x64. O Linux Mint cumpre as mesmas funções que os sistemas operacionais Microsoft Windows, Mac OS da Apple, e o Free BSD.</p>
+        </div>
+    </div>
+
+    <!-- Modal para Red Hat Linux -->
+    <div id="modal-red-hat-linux" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-red-hat-linux')">&times;</span>
+            <p>O Red Hat Enterprise Linux foi criado para inovadores, feito para desenvolvedores e projetado para equipes de operações. Um sistema operacional open source Linux oferece aos desenvolvedores a estabilidade e a consistência de que eles precisam, podendo ser executado em todas as infraestruturas e nuvens.</p>
+        </div>
+    </div>
+
+    <!-- Modal para Fedora -->
+    <div id="modal-fedora" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-fedora')">&times;</span>
+            <p>Fedora (conhecido como Fedora Core antes da versão 7) é um sistema operacional ou sistema operativo Linux. O sistema operacional Fedora Linux é software livre e de código aberto, e os programas disponíveis dentro de seu repositório de programas também são programas livres que aderem a uma licença livre.</p>
+        </div>
+    </div>
+
+    <!-- Modal para CentOS -->
+    <div id="modal-centos" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-centos')">&times;</span>
+            <p>O CentOS, abreviação de Community ENTerprise Operating System, é uma distribuição Linux de classe corporativa derivada de códigos fonte gratuitamente distribuídos pela Red Hat Enterprise Linux e mantida pelo CentOS Project. The CentOS Project (projeto CentOS) Afiliado a Red Hat.</p>
+        </div>
+    </div>
+
+    <!-- Modal para Slackware -->
+    <div id="modal-slackware" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-slackware')">&times;</span>
+            <p>O Slackware é um sistema operacional computacional baseado em projetos oficiais de software livre, desenvolvido por pessoas espalhadas no mundo organizadas em comunidades e instituições, sendo a principal delas a FSF (Free Software Foundation) com seus projetos e licenciamentos GNU LGPL de software livre.</p>
+        </div>
+    </div>
+
+    <!-- Modal para Gentoo -->
+    <div id="modal-gentoo" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-gentoo')">&times;</span>
+            <p>Gentoo é uma distribuição do Linux ideal para quem quer ter total controle sobre o que é instalado e executado no computador. Ela permite criar tanto desktops quanto servidores muito eficientes, porém é preciso bastante tempo e conhecimento para realizar uma configuração correta do sistema.</p>
+        </div>
+    </div>
+
+    <!-- Modal para Arch -->
+    <div id="modal-arch" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-arch')">&times;</span>
+            <p>O Arch Linux funciona como um lego, ele oferece muitas peças e cabe ao usuário escolher quais delas atendem ao seu propósito. Entretanto, por padrão, há ao menos duas barreiras: o usuário precisa conhecer cada uma das peças e precisa saber construir tudo pelo terminal.</p>
+        </div>
+    </div>
+
+    <!-- Modal para Manjaro -->
+    <div id="modal-manjaro" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-manjaro')">&times;</span>
+            <p>O Manjaro é uma distribuição Linux livre e de código aberto baseada no sistema operacional Arch Linux. O Manjaro se concentra na facilidade de uso e acessibilidade, e o próprio sistema foi projetado para funcionar totalmente "direto da caixa" com sua variedade de softwares pré instalados.</p>
+        </div>
+    </div>
+
+    <!-- Modal para Chrome OS -->
+    <div id="modal-chrome-os" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-chrome-os')">&times;</span>
+            <p>O Chrome OS é um Google Chrome em forma de sistema operacional. Isso significa que você não precisa reiniciá-lo enquanto ele atualiza e ele não fica pesado com inúmeros registros de arquivos. Isso faz do Chrome OS um sistema rápido, leve e simples de usar.</p>
+        </div>
+    </div>
+
+    <!-- Modal para Pop!_OS -->
+    <div id="modal-pop-os" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-pop-os')">&times;</span>
+            <p>Pop!_ OS é uma distribuição Linux gratuita de código aberto, baseada no Ubuntu, e conta com um desktop GNOME personalizado. A distribuição é desenvolvida pela fabricante estadunidense de computadores Linux, chamada System76.</p>
+        </div>
+    </div>
+
+    <!-- Script JavaScript para abrir e fechar modais -->
+    <script>
+        // Função para abrir o modal
+        function openModal(modalId) {
+            var modal = document.getElementById(modalId);
+            modal.style.display = "block";
+        }
+
+        // Função para fechar o modal
+        function closeModal(modalId) {
+            var modal = document.getElementById(modalId);
+            modal.style.display = "none";
+        }
+
+        // Fechar o modal quando clicar fora dele
+        window.onclick = function(event) {
+            var modals = document.getElementsByClassName('modal');
+            for (var i = 0; i < modals.length; i++) {
+                var modal = modals[i];
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Árvore DOS</title>
+    <style>
+        /* Estilos do Menu Fixo no Topo */
+        .top-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #1f0663;
+            color: #fff; /* Cor do texto */
+            padding: 10px 20px;
+            z-index: 1000; /* Para garantir que o menu esteja acima de outros elementos */
+            border-bottom: 2px solid #fff; /* Adiciona uma borda na parte inferior */
+        }
+
+        .top-menu ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .top-menu ul li {
+            display: inline;
+            margin-right: 20px;
+        }
+
+        .top-menu ul li a {
+            color: #fff; /* Cor do texto do link */
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .top-menu ul li a:hover {
+            text-decoration: underline;
+        }
+
+        /* Adiciona um fundo à página */
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url(fundo.jpeg);
+            background-color: #f2f2f2; /* Define uma cor de fundo para a página */
+            background-size: cover; /* Para cobrir todo o espaço disponível */
+            background-position: center; /* Centraliza a imagem */
+            background-attachment: fixed; /* Fixa a imagem de fundo para que ela não role com a página */
+            font-family: Arial, sans-serif;
+            color: #333;
+        }
+
+        /* Estilos da Árvore Genealógica */
+        .container {
+            padding: 2rem;
+            float: left; /* Align container to the left */
+        }
+
+        h2 {
+            color: #f7f2f2;
+        }
+
+        .tree ul {
+            position: relative;
+            transition: all 0.5s;
+            -webkit-transition: all 0.5s;
+            -moz-transition: all 0.5s;
+        }
+
+        .tree li {
+            text-align: center;
+            list-style-type: none;
+            position: relative;
+            padding: 20px 5px 0 5px;
+            transition: all 0.5s;
+            -webkit-transition: all 0.5s;
+            -moz-transition: all 0.5s;
+            border: 1px solid #ddd; /* Light border */
+            border-radius: 5px; /* Add border radius */
+            background-color: #f9f9f9; /* Light background color */
+        }
+
+        .tree li::before,
+        .tree li::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 50%;
+            border-top: 1px solid #ccc;
+            width: 50%;
+            height: 20px;
+        }
+
+        .tree li::after {
+            right: auto;
+            left: 50%;
+            border-left: 1px solid #ccc;
+        }
+
+        .tree li:only-child::after,
+        .tree li:only-child::before {
+            display: none;
+        }
+
+        .tree li:only-child {
+            padding-top: 0;
+        }
+
+        .tree li:first-child::before,
+        .tree li:last-child::after {
+            border: 0 none;
+        }
+
+        .tree li:last-child::before {
+            border-right: 1px solid #ccc;
+            border-radius: 0 5px 0 0;
+            -webkit-border-radius: 0 5px 0 0;
+            -moz-border-radius: 0 5px 0 0;
+        }
+
+        .tree li:first-child::after {
+            border-radius: 5px 0 0 0;
+            -webkit-border-radius: 5px 0 0 0;
+            -moz-border-radius: 5px 0 0 0;
+        }
+
+        .tree ul ul::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            border-left: 1px solid #ccc;
+            width: 0;
+            height: 20px;
+        }
+
+        .tree li a {
+            border: 1px solid #ccc;
+            padding: 5px 10px;
+            text-decoration: none;
+            color: #666;
+            font-family: Arial, sans-serif;
+            font-size: 12px; /* Decrease font size */
+            display: inline-block;
+            border-radius: 5px;
+            -webkit-border-radius: 5px;
+            -moz-border-radius: 5px;
+            transition: all 0.3s;
+            -webkit-transition: all 0.3s;
+            -moz-transition: all 0.3s;
+            background-color: #f9f9f9; /* Light background color */
+        }
+
+        .tree li a:hover,
+        .tree li a:hover+ul li a {
+            background: #e9e9e9; /* Lighter background color on hover */
+            color: #000; /* Black text color on hover */
+            border: 1px solid #bbb; /* Lighter border color on hover */
+        }
+
+        .tree li a:hover+ul li::after,
+        .tree li a:hover+ul li::before,
+        .tree li a:hover+ul::before,
+        .tree li a:hover+ul ul::before {
+            border-color: #bbb; /* Lighter border color on hover */
+        }
+
+        /* Estilos para os modais */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Fixo no Topo -->
+    <div class="top-menu">
+        <ul>
+            <li><a href="Index.html" target="_self">Inicio</a></li>
+            <li><a href="Unix.html" target="_self">Arvore Unix</a></li>
+            <li><a href="DOS.html" target="_self">Arvore DOS</a></li>
+            <li><a href="MacOS.html" target="_self">Arvore MacOS</a></li>
+        </ul>
+    </div>
+
+    <!-- Conteúdo da Árvore DOS -->
+    <div class="container">
+        <h2>Árvore DOS (1981)</h2>
+        <div class="tree">
+            <ul>
+                <li>
+                    <a href="#" onclick="openModal('modal-ms-dos')">MS-DOS (1981)</a>
+                    <ul>
+                        <li>
+                            <a href="#" onclick="openModal('modal-windows-1')">Windows 1.0 (1985)</a>
+                            <ul>
+                                <li><a href="#" onclick="openModal('modal-windows-2')">Windows 2.0 (1987)</a></li>
+                                <li>
+                                    <a href="#" onclick="openModal('modal-windows-3')">Windows 3.0 (1990)</a>
+                                    <ul>
+                                        <li>
+                                            <a href="#" onclick="openModal('modal-windows-95')">Windows 95 (1995)</a>
+                                            <ul>
+                                                <li><a href="#" onclick="openModal('modal-windows-98')">Windows 98 (1998)</a></li>
+                                                <li><a href="#" onclick="openModal('modal-windows-me')">Windows ME (2000)</a></li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            <a href="#" onclick="openModal('modal-windows-nt')">Windows NT (1993)</a>
+                                            <ul>
+                                                <li><a href="#" onclick="openModal('modal-windows-2000')">Windows 2000 (2000)</a></li>
+                                                <li><a href="#" onclick="openModal('modal-windows-xp')">Windows XP (2001)</a></li>
+                                                <li><a href="#" onclick="openModal('modal-windows-vista')">Windows Vista (2007)</a></li>
+                                                <li><a href="#" onclick="openModal('modal-windows-7')">Windows 7 (2009)</a></li>
+                                                <li><a href="#" onclick="openModal('modal-windows-8')">Windows 8 (2012)</a></li>
+                                                <li><a href="#" onclick="openModal('modal-windows-10')">Windows 10 (2015)</a></li>
+                                                <li><a href="#" onclick="openModal('modal-windows-11')">Windows 11 (2021)</a></li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li><a href="#" onclick="openModal('modal-windows-3')">Windows 3.0 (1990)</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#" onclick="openModal('modal-dr-dos')">DR-DOS (1988)</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Modais -->
+
+    <!-- Modal para MS-DOS -->
+    <div id="modal-ms-dos" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-ms-dos')">&times;</span>
+            <p>BSD, ou Berkeley Software Distribution, é uma linha de sistemas operacionais derivados do Unix, inicialmente desenvolvida na Universidade da Califórnia, em Berkeley.
+                Ele foi, ao longo das décadas seguintes, “O” sistema operacional quando se falava em computadores PC compatíveis.</p>
+        </div>
+    </div>
+
+    <!-- Modal para Windows 1.0 -->
+    <div id="modal-windows-1" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-windows-1')">&times;</span>
+            <p>Windows 1.0 (1985) - Características: Primeira tentativa da Microsoft de uma interface gráfica sobre o MS-DOS. Suporte limitado a multitarefa e interface baseada em janelas. Uso de mouse foi introduzido.
+                </p>
+        </div>
+    </div>
+
+    <!-- Modal para Windows 2.0 -->
+    <div id="modal-windows-2" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-windows-2')">&times;</span>
+            <p>Windows 2.0 (1987) - Características: Melhorou a interface gráfica, permitindo janelas sobrepostas e ícones na área de trabalho. Suporte a mais memória e a aplicações gráficas mais complexas.
+                </p>
+        </div>
+    </div>
+
+    <!-- Modal para Windows 3.0 -->
+    <div id="modal-windows-3" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-windows-3')">&times;</span>
+            <p>Windows 3.0 (1990) - Características: Interface gráfica significativamente melhorada, introdução do Gerenciador de Programas e do Gerenciador de Arquivos. Maior estabilidade e suporte a multitarefa aprimorado.
+                </p>
+        </div>
+    </div>
+
+    <!-- Modal para Windows 95 -->
+    <div id="modal-windows-95" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-windows-95')">&times;</span>
+            <p>Windows 95 (1995) - Características: Nova interface gráfica, introdução do menu Iniciar, barra de tarefas e suporte a nomes de arquivos longos. Integração com a Internet e suporte para plug and play.
+                </p>
+        </div>
+    </div>
+
+    <!-- Modal para Windows 98 -->
+    <div id="modal-windows-98" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-windows-98')">&times;</span>
+            <p>Windows 98 (1998) - Características: Melhorias na estabilidade e performance, melhor suporte para dispositivos USB, introdução do Internet Explorer 4 e do Active Desktop.
+                </p>
+        </div>
+    </div>
+
+    <!-- Modal para Windows ME -->
+    <div id="modal-windows-me" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-windows-me')">&times;</span>
+            <p>Windows ME (Millennium Edition) (2000) - Características: Focado no consumidor final com melhorias em multimídia e conectividade doméstica. Última versão baseada no kernel do Windows 9x.
+                </p>
+        </div>
+    </div>
+
+    <!-- Modal para Windows NT -->
+    <div id="modal-windows-nt" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-windows-nt')">&times;</span>
+            <p>Windows NT (New Technology) - Características: Linha de sistemas operacionais voltada para servidores e estações de trabalho. Introduziu um kernel totalmente novo, suportando segurança e estabilidade melhoradas.
+                </p>
+        </div>
+    </div>
+
+    <!-- Modal para Windows 2000 -->
+    <div id="modal-windows-2000" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-windows-2000')">&times;</span>
+            <p>Windows 2000 - Características: Baseado no kernel do Windows NT, focado em estabilidade e segurança para uso corporativo. Suporte melhorado a hardware e redes.
+                </p>
+        </div>
+    </div>
+
+    <!-- Modal para Windows XP -->
+    <div id="modal-windows-xp" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-windows-xp')">&times;</span>
+            <p>Windows XP (2001) - Características: Unificou as linhas de produtos domésticos e profissionais. Interface gráfica renovada, maior estabilidade e segurança, e introdução de recursos como o modo de compatibilidade.
+                </p>
+        </div>
+    </div>
+
+    <!-- Modal para Windows Vista -->
+    <div id="modal-windows-vista" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-windows-vista')">&times;</span>
+            <p>Windows Vista (2006) - Características: Nova interface gráfica "Aero", melhorias em segurança e rede, mas criticado por problemas de performance e compatibilidade.
+                </p>
+        </div>
+    </div>
+
+    <!-- Modal para Windows 7 -->
+    <div id="modal-windows-7" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('modal-windows-7')">&times;</span>
+            <p>Windows 7 (2009) - Características: Melhorias em performance e usabilidade, estabilidade aprimorada, e interface gráfica refinada. Sucesso comercial e amplamente adotado.  
+            </p>
+</div>
+</div>
+<!-- Modal para Windows 8 -->
+<div id="modal-windows-8" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('modal-windows-8')">&times;</span>
+        <p>Windows 8 (2012) - Características: Interface radicalmente nova com foco em telas sensíveis ao toque, remoção do menu Iniciar tradicional. Introdução da Tela Inicial e aplicativos em "blocos".
+            </p>
+    </div>
+</div>
+
+<!-- Modal para Windows 10 -->
+<div id="modal-windows-10" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('modal-windows-10')">&times;</span>
+        <p>Windows 10 (2015) - Características: Reintrodução do menu Iniciar, integração de Cortana, múltiplas áreas de trabalho virtuais, e atualizações contínuas. Convergência entre dispositivos (PCs, tablets, smartphones).</p>
+    </div>
+</div>
+
+<!-- Modal para Windows 11 -->
+<div id="modal-windows-11" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('modal-windows-11')">&times;</span>
+        <p>Windows 11 (2021) - Características: Interface renovada com design mais moderno e arredondado, melhorias de desempenho e segurança, maior integração com aplicativos Android, e novos recursos para produtividade.
+            Cada versão trouxe avanços tecnológicos e novas funcionalidades, adaptando-se às necessidades dos usuários e às inovações tecnológicas da época.</p>
+    </div>
+</div>
+
+<!-- Modal para DR-DOS -->
+<div id="modal-dr-dos" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('modal-dr-dos')">&times;</span>
+        <p>A Digital Research, responsável pelo CP/M original, seu sucessor CP/M-86, e finalmente pelo DR-DOS, foi comprada pela Novell e transformada na Caldera. Curiosamente, a mesma SCO que comprou o Xenix da Microsoft vendeu sua versão do Unix para a Caldera.</p>
+    </div>
+</div>
+
+<script>
+    // Função para abrir um modal específico
+    function openModal(modalId) {
+        var modal = document.getElementById(modalId);
+        modal.style.display = "block";
+    }
+
+    // Função para fechar o modal
+    function closeModal(modalId) {
+        var modal = document.getElementById(modalId);
+        modal.style.display = "none";
+    }
+</script>
+</body>
+</html>
